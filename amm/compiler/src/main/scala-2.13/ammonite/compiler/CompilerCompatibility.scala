@@ -10,26 +10,8 @@ import scala.tools.nsc.{Global, Settings}
 import scala.tools.nsc.interactive.{InteractiveAnalyzer, Global => InteractiveGlobal}
 import scala.tools.nsc.plugins.Plugin
 import scala.tools.nsc.reporters.Reporter
-import scala.tools.nsc.typechecker.Analyzer
-import scala.tools.nsc.typechecker.MacroAnnotationNamers
 
 object CompilerCompatibility {
-
-  def analyzer(g: Global, cl: ClassLoader): Analyzer { val global: g.type } = {
-
-    // Adding MacroAnnotationNamers like scalac does, see
-    // https://github.com/scala/scala/blob/434a3d78/src/compiler/scala/tools/nsc/Global.scala#L481
-    val macroAnnotations = g.settings.YmacroAnnotations.value
-
-    if (macroAnnotations)
-      new { val global: g.type = g } with Analyzer with MacroAnnotationNamers {
-        override def defaultMacroClassloader = global.findMacroClassLoader
-      }
-    else
-      new { val global: g.type = g } with Analyzer {
-        override def defaultMacroClassloader = global.findMacroClassLoader
-      }
-  }
 
   def interactiveAnalyzer(
       g: InteractiveGlobal,
@@ -60,8 +42,6 @@ object CompilerCompatibility {
         override val settings = g.settings
         override val classPath = jcp
       }
-
-      override lazy val analyzer = CompilerCompatibility.analyzer(g, evalClassloader)
     }
   }
 
